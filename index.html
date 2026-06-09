@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>עורך אקורדים ושירים</title>
+<title>עורך ChordPro</title>
 <style>
   :root {
     --bg: #1a1d23;
@@ -15,97 +15,46 @@
     --accent: #4fa3ff;
     --accent-2: #ffb84f;
     --chord: #ff7a59;
+    --directive: #b489ff;
     --section: #6ad17a;
-    --danger: #ff5a5a;
   }
-
   * { box-sizing: border-box; }
-
   body {
     margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Heebo", "Arial Hebrew", sans-serif;
+    font-family: "Segoe UI", "Heebo", "Arial Hebrew", sans-serif;
     background: var(--bg);
     color: var(--text);
     height: 100vh;
     display: flex;
     flex-direction: column;
   }
-
   header {
     background: var(--panel);
     border-bottom: 1px solid var(--border);
     padding: 10px 16px;
     display: flex;
     flex-wrap: wrap;
-    gap: 12px;
+    gap: 10px;
     align-items: center;
   }
-
+  header h1 {
+    margin: 0 8px 0 0;
+    font-size: 18px;
+    font-weight: 600;
+  }
   header input[type="text"] {
     background: var(--panel-2);
     border: 1px solid var(--border);
     color: var(--text);
     padding: 6px 10px;
     border-radius: 6px;
-    font-size: 14px;
+    font-size: 13px;
     font-family: inherit;
   }
-  #songTitle { width: 240px; font-weight: 600; }
-  #songArtist { width: 160px; }
-
-  .transpose-box {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: var(--panel-2);
-    border: 1px solid var(--border);
-    padding: 6px 12px;
-    border-radius: 8px;
-    margin-inline-start: auto;
-  }
-  .transpose-box label { color: var(--muted); font-size: 13px; }
-  .transpose-box button {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    color: var(--text);
-    width: 30px;
-    height: 30px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 18px;
-    font-weight: 700;
-  }
-  .transpose-box button:hover { border-color: var(--accent); color: var(--accent); }
-  .transpose-box input[type="range"] {
-    width: 200px;
-    accent-color: var(--accent);
-  }
-  #transposeValue {
-    background: var(--accent);
-    color: #0a0c10;
-    padding: 4px 12px;
-    border-radius: 6px;
-    font-weight: 700;
-    min-width: 44px;
-    text-align: center;
-    font-family: ui-monospace, "Cascadia Code", "Consolas", monospace;
-  }
-  #currentKey {
-    color: var(--accent-2);
-    font-weight: 700;
-    font-family: ui-monospace, "Cascadia Code", "Consolas", monospace;
-  }
-
-  .flatsToggle {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    color: var(--muted);
-    font-size: 13px;
-    cursor: pointer;
-    user-select: none;
-  }
-
+  header input[type="text"]:focus { outline: none; border-color: var(--accent); }
+  #metaTitle { width: 200px; font-weight: 600; }
+  #metaArtist { width: 140px; }
+  #metaKey { width: 56px; text-align: center; font-family: ui-monospace, "Consolas", monospace; color: var(--accent-2); font-weight: 700; }
   .btn {
     background: var(--panel-2);
     border: 1px solid var(--border);
@@ -119,335 +68,40 @@
   .btn:hover { border-color: var(--accent); color: var(--accent); }
   .btn.primary { background: var(--accent); color: #0a0c10; border-color: var(--accent); font-weight: 600; }
   .btn.primary:hover { filter: brightness(1.1); color: #0a0c10; }
-  .btn.danger:hover { border-color: var(--danger); color: var(--danger); }
 
-  main {
-    flex: 1;
-    display: grid;
-    grid-template-columns: 260px 1fr 1fr;
-    gap: 1px;
-    background: var(--border);
-    overflow: hidden;
-  }
-
-  .pane {
-    background: var(--bg);
+  .transpose-box {
     display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
-  .pane-header {
-    padding: 8px 12px;
-    background: var(--panel);
-    border-bottom: 1px solid var(--border);
-    font-size: 12px;
-    color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  .pane-body {
-    flex: 1;
-    overflow: auto;
-    padding: 12px;
-  }
-
-  #editor {
-    width: 100%;
-    height: 100%;
-    background: var(--bg);
-    border: none;
-    color: var(--text);
-    padding: 12px;
-    font-family: ui-monospace, "Cascadia Code", "Consolas", "Courier New", "Segoe UI", "Heebo", monospace;
-    font-size: 15px;
-    line-height: 1.8;
-    resize: none;
-    outline: none;
-    direction: ltr;
-    text-align: start;
-    unicode-bidi: plaintext;
-    white-space: pre-wrap;
-  }
-  /* Editor RTL mode — when dirMode = RTL the textarea flips to a Hebrew-page
-     layout: all lines align to the right (Hebrew + chord lines together).
-     unicode-bidi is forced back to `normal` so latin chord runs sit at the
-     right edge of each line. NO bidi-override so chord letters stay readable
-     ("Dm" reads as "Dm", not "mD"). */
-  #editor[dir="rtl"] {
-    direction: rtl;
-    text-align: right;
-    unicode-bidi: normal;
-  }
-  #editor[dir="ltr"] {
-    direction: ltr;
-    text-align: left;
-    unicode-bidi: plaintext;
-  }
-
-  #preview {
-    font-family: "Segoe UI", "Heebo", "Arial Hebrew", ui-monospace, "Cascadia Code", "Consolas", "Courier New", monospace;
-    /* Typography is driven by CSS variables so the header sliders + print
-       view can both control them without touching the DOM. */
-    --preview-font-size: 16px;
-    --preview-line-height: 1.6;
-    font-size: var(--preview-font-size);
-    line-height: var(--preview-line-height);
-    direction: rtl;
-    text-align: start;
-    unicode-bidi: plaintext;
-  }
-  #preview.two-cols {
-    column-count: 2;
-    column-gap: 28px;
-    column-rule: 1px dashed var(--border);
-  }
-  #preview.two-cols .block:first-child { margin-top: 0; }
-
-  .block {
-    break-inside: avoid;
-    page-break-inside: avoid;
-    margin-bottom: 10px;
-    display: block;
-  }
-
-  .song-line {
-    margin: 0;
-    padding: 0;
-    min-height: 1.5em;
-    /* isolate (not plaintext): line aligns with the preview's overall
-       direction so all lines in a song share one side. Bidi inside the line
-       is still properly handled. */
-    unicode-bidi: isolate;
-  }
-  .chord-line {
-    color: var(--chord);
-    font-weight: 700;
-    white-space: pre;
-    unicode-bidi: isolate;
-    font-family: ui-monospace, "Cascadia Code", "Consolas", "Courier New", monospace;
-  }
-  .lyric-line {
-    color: var(--text);
-    white-space: pre-wrap;
-    unicode-bidi: isolate;
-    font-family: ui-monospace, "Cascadia Code", "Consolas", "Courier New", monospace;
-  }
-  /* Hebrew page preview: chord WORDS flow right-to-left across the line
-     (first chord on the right, next chord to the left), but the LETTERS
-     inside each chord stay in natural left-to-right reading order. Each
-     chord token in renderChordLineHtml is wrapped in a `<bdi dir="ltr">`
-     atom — those isolated LTR atoms get placed in source order through the
-     RTL paragraph, while their internal LTR display keeps "Dm" readable as
-     "Dm" rather than flipping to "mD". */
-  /* Scoped to #preview because the document <html> is dir="rtl" — an
-     unscoped [dir="rtl"] selector would always match and the preview could
-     never actually switch to LTR. */
-  #preview[dir="rtl"] .chord-line {
-    direction: rtl;
-    unicode-bidi: isolate;
-    text-align: right;
-  }
-  #preview[dir="rtl"] .lyric-line {
-    direction: rtl;
-    text-align: right;
-  }
-  #preview[dir="ltr"] .chord-line,
-  #preview[dir="ltr"] .lyric-line {
-    direction: ltr;
-    text-align: left;
-  }
-  .chord-token {
-    unicode-bidi: isolate;
-    direction: ltr;
-    white-space: nowrap;
-  }
-  .section-line {
-    color: var(--section);
-    font-weight: 700;
-    margin-top: 14px;
-    margin-bottom: 4px;
-    font-size: 17px;
-  }
-  .inline-line {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    align-items: flex-end;
-    margin: 10px 0 4px;
-    unicode-bidi: isolate;
-    line-height: 1.4;
-    row-gap: 18px;
-  }
-  /* Force RTL flex flow for the cell row when the preview is in Hebrew
-     mode. Scoped to #preview (not bare [dir="rtl"]) so the page's <html>
-     dir="rtl" doesn't cascade and make the preview always RTL even after
-     the user picks LTR. */
-  #preview[dir="rtl"] .inline-line {
-    direction: rtl;
-    flex-direction: row;
-  }
-  #preview[dir="ltr"] .inline-line {
-    direction: ltr;
-    flex-direction: row;
-  }
-
-  .inline-line .cell {
-    display: inline-flex;
-    flex-direction: column;
-    align-items: flex-start;
-    unicode-bidi: isolate;
-    vertical-align: bottom;
-  }
-  #preview[dir="rtl"] .inline-line .cell { direction: rtl; }
-  #preview[dir="ltr"] .inline-line .cell { direction: ltr; }
-
-  .inline-line .cell > .chord {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 6px;
-    color: var(--chord);
-    font-weight: 700;
-    font-size: 0.88em;
-    min-height: 1.5em;
-    line-height: 1.3;
-    font-family: ui-monospace, "Cascadia Code", "Consolas", monospace;
-    white-space: nowrap;
-    padding-bottom: 3px;
-  }
-  #preview[dir="rtl"] .inline-line .cell > .chord { direction: rtl; }
-  #preview[dir="ltr"] .inline-line .cell > .chord { direction: ltr; }
-
-  .inline-line .cell > .lyric {
-    display: block;
-    color: var(--text);
-    white-space: pre;
-    line-height: 1.4;
-  }
-
-  .chord-palette {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px;
-    padding: 8px 12px;
-    background: var(--panel-2);
-    border-bottom: 1px solid var(--border);
-    direction: ltr;
-    align-items: center;
-  }
-  .chord-palette button {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    color: var(--chord);
-    padding: 3px 9px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-family: ui-monospace, "Cascadia Code", "Consolas", monospace;
-    font-weight: 700;
-    font-size: 13px;
-    min-width: 32px;
-  }
-  .chord-palette button:hover {
-    border-color: var(--chord);
-    background: var(--bg);
-  }
-  .chord-palette button:active { transform: translateY(1px); }
-  .chord-palette input {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    color: var(--text);
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-family: ui-monospace, "Cascadia Code", "Consolas", monospace;
-    font-size: 13px;
-    width: 130px;
-    margin-inline-start: auto;
-    outline: none;
-    direction: ltr;
-  }
-  .chord-palette input:focus { border-color: var(--accent); }
-  .chord-palette .hint {
-    color: var(--muted);
-    font-size: 11px;
-    padding: 0 6px;
-    font-family: inherit;
-  }
-  .empty-hint {
-    color: var(--muted);
-    font-style: italic;
-    text-align: center;
-    margin-top: 40px;
-    font-family: inherit;
-    direction: rtl;
-  }
-
-  #songList {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-  }
-  #songList li {
-    padding: 8px 10px;
-    border-radius: 6px;
-    cursor: pointer;
-    margin-bottom: 4px;
-    background: var(--panel-2);
-    border: 1px solid transparent;
-    display: flex;
-    justify-content: space-between;
     align-items: center;
     gap: 8px;
-  }
-  #songList li:hover { border-color: var(--accent); }
-  #songList li.active { border-color: var(--accent-2); background: var(--panel); }
-  #songList .song-meta {
-    flex: 1;
-    overflow: hidden;
-  }
-  #songList .song-meta .t { font-weight: 600; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  #songList .song-meta .a { color: var(--muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  #songList .del {
-    background: transparent;
-    border: none;
-    color: var(--muted);
-    cursor: pointer;
-    font-size: 16px;
-    padding: 2px 6px;
-    border-radius: 4px;
-  }
-  #songList .del:hover { color: var(--danger); background: rgba(255,90,90,0.1); }
-
-  .actions-row {
-    display: flex;
-    gap: 6px;
-    flex-wrap: wrap;
-    margin-bottom: 10px;
-  }
-  .actions-row .btn { flex: 1; min-width: 0; font-size: 12px; }
-
-  .help-section {
-    margin-top: 12px;
-    padding: 10px;
     background: var(--panel-2);
+    border: 1px solid var(--border);
+    padding: 6px 12px;
+    border-radius: 8px;
+  }
+  .transpose-box label { color: var(--muted); font-size: 13px; }
+  .transpose-box button {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    color: var(--text);
+    width: 28px;
+    height: 28px;
     border-radius: 6px;
-    font-size: 12px;
-    color: var(--muted);
-    line-height: 1.7;
+    cursor: pointer;
+    font-weight: 700;
   }
-  .help-section code {
-    background: var(--bg);
-    padding: 1px 5px;
-    border-radius: 3px;
-    color: var(--chord);
-    font-size: 11px;
-    direction: ltr;
-    display: inline-block;
+  .transpose-box input[type="range"] { width: 160px; accent-color: var(--accent); }
+  #transposeValue {
+    background: var(--accent);
+    color: #0a0c10;
+    padding: 3px 10px;
+    border-radius: 6px;
+    font-weight: 700;
+    min-width: 36px;
+    text-align: center;
+    font-family: ui-monospace, "Consolas", monospace;
   }
+  #currentKey { color: var(--accent-2); font-weight: 700; font-family: ui-monospace, "Consolas", monospace; }
 
-  /* Slider controls in the header for typography */
   .size-ctrl {
     display: flex;
     align-items: center;
@@ -459,25 +113,285 @@
     padding: 4px 8px;
     border-radius: 6px;
   }
-  .size-ctrl input[type="range"] {
-    width: 80px;
-    accent-color: var(--accent);
+  .size-ctrl input[type="range"] { width: 80px; accent-color: var(--accent); }
+
+  main {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: var(--border);
+    overflow: hidden;
+  }
+  .pane {
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .pane-header {
+    padding: 6px 12px;
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .pane-body { flex: 1; overflow: auto; padding: 12px; }
+
+  #editor {
+    width: 100%;
+    height: 100%;
+    background: var(--bg);
+    border: none;
+    color: var(--text);
+    padding: 12px;
+    font-family: ui-monospace, "Cascadia Code", "Consolas", "Courier New", monospace;
+    font-size: 14px;
+    line-height: 1.7;
+    resize: none;
+    outline: none;
+    unicode-bidi: plaintext;
+    white-space: pre;
+    overflow: auto;
   }
 
-  /* Running per-page header — hidden on screen, shown at the top of every
-     printed page via position:fixed (Chrome/Safari/Edge replicate fixed
-     elements on each printed page). */
+  /* ChordPro source syntax highlighting hints via JS would be nice — for
+     now we just style preview output. */
+
+  #preview {
+    --preview-font-size: 16px;
+    --preview-line-height: 1.6;
+    font-size: var(--preview-font-size);
+    line-height: var(--preview-line-height);
+    font-family: "Segoe UI", "Heebo", "Arial Hebrew", sans-serif;
+  }
+  /* On-screen two-column toggle (also controls print layout via @media) */
+  #preview.two-cols {
+    column-count: 2;
+    column-gap: 28px;
+    column-rule: 1px dashed var(--border);
+  }
+  /* Make the entire preview right-aligned for Hebrew songs and left-
+     aligned for English. Scoped to #preview so the document <html> dir
+     doesn't cascade in unexpectedly. */
+  #preview[dir="rtl"] { direction: rtl; text-align: right; }
+  #preview[dir="ltr"] { direction: ltr; text-align: left; }
+  #preview[dir="rtl"] .song-title,
+  #preview[dir="rtl"] .song-artist,
+  #preview[dir="rtl"] .song-meta,
+  #preview[dir="rtl"] .section,
+  #preview[dir="rtl"] .comment { text-align: right; }
+  #preview[dir="ltr"] .song-title,
+  #preview[dir="ltr"] .song-artist,
+  #preview[dir="ltr"] .song-meta,
+  #preview[dir="ltr"] .section,
+  #preview[dir="ltr"] .comment { text-align: left; }
+
+  .song-title {
+    font-size: 1.6em;
+    font-weight: 700;
+    margin: 0 0 4px;
+    color: var(--text);
+  }
+  .song-artist {
+    color: var(--muted);
+    margin: 0 0 4px;
+    font-size: 1em;
+  }
+  .song-meta {
+    color: var(--muted);
+    font-size: 0.85em;
+    margin: 0 0 14px;
+  }
+  .song-meta span + span::before { content: " · "; padding: 0 4px; }
+
+  .section {
+    margin: 14px 0;
+    padding: 6px 10px;
+    border-inline-start: 3px solid var(--border);
+  }
+  .section.chorus {
+    border-inline-start-color: var(--section);
+    background: rgba(106, 209, 122, 0.05);
+  }
+  .section.bridge {
+    border-inline-start-color: var(--accent-2);
+    background: rgba(255, 184, 79, 0.05);
+  }
+  .section .section-label {
+    color: var(--section);
+    font-weight: 700;
+    font-size: 0.85em;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 0 0 6px;
+  }
+  .section.chorus .section-label { color: var(--section); }
+  .section.bridge .section-label { color: var(--accent-2); }
+  .section.verse .section-label { color: var(--muted); }
+
+  .comment {
+    color: var(--muted);
+    font-style: italic;
+    margin: 6px 0;
+    font-size: 0.95em;
+  }
+
+  /* Each lyric line — chord+word cells, RTL flow for Hebrew, LTR for English */
+  .lyric-line {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    margin: 4px 0;
+    row-gap: 14px;
+    unicode-bidi: isolate;
+  }
+  .lyric-line:empty::before { content: "\00a0"; }
+  #preview[dir="rtl"] .lyric-line { direction: rtl; }
+  #preview[dir="ltr"] .lyric-line { direction: ltr; }
+  /* A per-line dir attribute (set by the user via Ctrl+Shift+R/L in the
+     editor) wins over the preview-wide direction. */
+  .lyric-line[dir="rtl"] { direction: rtl !important; text-align: right; }
+  .lyric-line[dir="ltr"] { direction: ltr !important; text-align: left; }
+
+  .cell {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: flex-start;
+    unicode-bidi: isolate;
+    vertical-align: bottom;
+  }
+  #preview[dir="rtl"] .cell { direction: rtl; }
+
+  .cell > .chord {
+    display: flex;
+    gap: 6px;
+    color: var(--chord);
+    font-weight: 700;
+    font-size: 0.78em;
+    min-height: 1.3em;
+    line-height: 1.2;
+    padding-bottom: 2px;
+    font-family: ui-monospace, "Cascadia Code", "Consolas", monospace;
+    white-space: nowrap;
+  }
+  #preview[dir="rtl"] .cell > .chord { direction: rtl; }
+  .cell > .chord bdi { display: inline-block; }
+
+  .cell > .lyric {
+    display: block;
+    color: var(--text);
+    white-space: pre;
+  }
+
+  /* Chord-over-lyric pair (free positioning). Both rows use the SAME
+     monospace font + `white-space: pre`, so 1 source space == 1 column == 1
+     character of lyric width. The user can shift a chord visually by adding
+     or removing spaces in the chord line. For Hebrew, dir="rtl" + explicit
+     text-align: right make source column N align from the right edge —
+     matching how Hebrew flows. */
+  .chord-pair {
+    font-family: ui-monospace, "Cascadia Code", "Consolas", "Courier New", monospace;
+    margin: 6px 0;
+    line-height: 1.3;
+  }
+  .chord-pair[dir="rtl"] { direction: rtl; text-align: right; }
+  .chord-pair[dir="ltr"] { direction: ltr; text-align: left; }
+  .chord-pair .chord-row {
+    color: var(--chord);
+    font-weight: 700;
+    font-size: 0.88em;
+    min-height: 1.25em;
+    white-space: pre;
+    unicode-bidi: isolate;
+    padding-bottom: 1px;
+  }
+  .chord-pair .lyric-row {
+    color: var(--text);
+    white-space: pre;
+    unicode-bidi: isolate;
+  }
+  .chord-pair[dir="rtl"] .chord-row,
+  .chord-pair[dir="rtl"] .lyric-row {
+    direction: rtl;
+    text-align: right;
+  }
+  .chord-pair[dir="ltr"] .chord-row,
+  .chord-pair[dir="ltr"] .lyric-row {
+    direction: ltr;
+    text-align: left;
+  }
+  .chord-pair .chord-token {
+    unicode-bidi: isolate;
+    direction: ltr;
+    display: inline-block;
+  }
+  .chord-pair .chord-marker {
+    color: var(--muted);
+    font-weight: 700;
+    /* Repeat marker (`\`) — same row, dimmed so it visually reads as a
+       continuation indicator rather than a real chord. */
+  }
+
+  .palette {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    padding: 6px 12px;
+    background: var(--panel-2);
+    border-bottom: 1px solid var(--border);
+    direction: ltr;
+    align-items: center;
+  }
+  .palette button {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    color: var(--directive);
+    padding: 3px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: ui-monospace, "Consolas", monospace;
+    font-size: 12px;
+  }
+  .palette button.chord { color: var(--chord); }
+  .palette button:hover { border-color: var(--accent); }
+  .palette .label {
+    color: var(--muted);
+    font-size: 11px;
+    padding: 0 6px;
+    font-family: inherit;
+  }
+  .palette input {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-family: ui-monospace, "Consolas", monospace;
+    font-size: 12px;
+    width: 110px;
+    outline: none;
+    direction: ltr;
+  }
+
+  .empty-hint {
+    color: var(--muted);
+    font-style: italic;
+    text-align: center;
+    margin-top: 40px;
+    font-family: inherit;
+    direction: rtl;
+  }
+
   #printPageHeader { display: none; }
-
   @media print {
-    /* Hide all UI */
-    header, aside, .pane-header, #editor-pane,
-    .chord-palette, #chordPalette,
-    #printHeader { display: none !important; }
-
-    /* Reset all containers to their natural printed flow — no flex/grid
-       constraints, no max-heights, no overflow clipping. Multi-column needs
-       a clean ancestor chain to read the page box height correctly. */
+    header, .pane-header, #editor-pane, .palette { display: none !important; }
     html, body, main, .pane, .pane-body {
       display: block !important;
       height: auto !important;
@@ -488,47 +402,34 @@
       background: white !important;
     }
     body { color: black !important; }
-
-    /* Use chord + section accent colors that print legibly */
-    .chord-line,
-    .inline-line .cell > .chord,
-    .chord-token { color: #b30000 !important; }
-    .section-line { color: #006400 !important; font-weight: 700; }
-    .lyric-line,
-    .inline-line .cell > .lyric { color: #000 !important; }
-    /* Keep verses intact across page boundaries */
-    .block {
-      break-inside: avoid;
-      page-break-inside: avoid;
-    }
-    .section-line {
-      break-after: avoid;
-      page-break-after: avoid;
-    }
-
-    /* ALWAYS render PDF in two columns regardless of the on-screen toggle.
-       `column-fill: auto` is CRITICAL — without it the default `balance`
-       leaves column 1 half-empty and lets content spill to the next page
-       earlier. With `auto`, column 1 fills completely before content moves
-       into column 2, and only when BOTH columns of the page are full does
-       the browser break to a new page. The container height is set so the
-       browser knows how tall each column should be. */
-    #preview {
+    .cell > .chord, .cell > .chord bdi,
+    .chord-pair .chord-row, .chord-pair .chord-token { color: #b30000 !important; }
+    .cell > .lyric, .song-title,
+    .chord-pair .lyric-row { color: #000 !important; }
+    .section.chorus, .section.bridge { background: transparent !important; }
+    .section .section-label { color: #006400 !important; }
+    .section.bridge .section-label { color: #aa6600 !important; }
+    .section { border-inline-start-color: #888 !important; }
+    .comment { color: #555 !important; }
+    .song-meta, .song-artist { color: #444 !important; }
+    /* Print column layout follows the on-screen toggle: 2 columns when the
+       user enabled .two-cols, otherwise a single column. column-fill: auto
+       makes column 1 fill completely before content spills into column 2. */
+    #preview.two-cols {
       column-count: 2 !important;
       column-gap: 1cm !important;
       column-rule: 1px dashed #ccc;
       column-fill: auto !important;
       height: 100vh !important;
     }
-
-    /* Minimal running title — tiny, no border, no padding. The fixed-top
-       element sits within the @page top margin so it doesn't push content. */
+    #preview:not(.two-cols) {
+      column-count: 1 !important;
+    }
+    .section, .lyric-line { break-inside: avoid; page-break-inside: avoid; }
     #printPageHeader {
       display: block !important;
       position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
+      top: 0; left: 0; right: 0;
       text-align: center;
       font-size: 7.5pt;
       color: #888;
@@ -536,14 +437,8 @@
       margin: 0;
       line-height: 1.1;
       direction: rtl;
-      background: transparent;
-      z-index: 999;
     }
-
-    @page {
-      margin: 0.9cm 1.2cm 0.9cm;
-      size: auto;
-    }
+    @page { margin: 0.9cm 1.2cm 0.9cm; size: auto; }
   }
 </style>
 </head>
@@ -552,135 +447,104 @@
 <div id="printPageHeader"></div>
 
 <header>
-  <input id="songTitle" type="text" placeholder="שם השיר" />
-  <input id="songArtist" type="text" placeholder="אומן" />
+  <h1>📝</h1>
+  <input id="metaTitle" type="text" placeholder="שם השיר" />
+  <input id="metaArtist" type="text" placeholder="אומן" />
   <span style="color:var(--muted);font-size:13px;">סולם:</span>
+  <input id="metaKey" type="text" placeholder="Am" />
+  <span style="color:var(--muted);font-size:13px;">נוכחי:</span>
   <span id="currentKey">—</span>
 
   <div class="transpose-box">
     <label>טרנספוז:</label>
-    <button id="trDown" title="הורד חצי טון">−</button>
+    <button id="trDown">−</button>
     <input id="transpose" type="range" min="-11" max="11" value="0" step="1" />
-    <button id="trUp" title="העלה חצי טון">+</button>
+    <button id="trUp">+</button>
     <span id="transposeValue">0</span>
-    <button id="trReset" class="btn" style="margin-inline-start:6px;">איפוס</button>
+    <button id="trReset" class="btn">איפוס</button>
   </div>
 
-  <label class="flatsToggle">
-    <input id="useFlats" type="checkbox" />
-    השתמש בבמולים (♭)
+  <label class="size-ctrl"><span>A−</span><input id="fontSize" type="range" min="11" max="28" value="16" step="1" /><span>A+</span><span id="fontSizeValue" style="min-width:24px;text-align:center;">16</span></label>
+  <label class="size-ctrl"><span>≡</span><input id="lineHeight" type="range" min="1.0" max="2.6" value="1.6" step="0.1" /><span id="lineHeightValue" style="min-width:30px;text-align:center;">1.6</span></label>
+
+  <label style="display:flex;align-items:center;gap:6px;color:var(--muted);font-size:13px;cursor:pointer;">
+    <input id="useFlats" type="checkbox" /> במולים (♭)
   </label>
 
-  <button id="btnDir" class="btn" title="כיוון תצוגה (אוטומטי / ימין-לשמאל / שמאל-לימין)">⇆ אוטו</button>
-  <button id="btnCols" class="btn" title="עמודה אחת / שתי עמודות">▥ שתי עמודות</button>
-
-  <label class="size-ctrl" title="גודל גופן בתצוגה ובהדפסה">
-    <span>A−</span>
-    <input id="fontSize" type="range" min="11" max="28" value="16" step="1" />
-    <span>A+</span>
-    <span id="fontSizeValue" style="min-width:24px;text-align:center;">16</span>
-  </label>
-  <label class="size-ctrl" title="מרווח בין שורות">
-    <span>≡</span>
-    <input id="lineHeight" type="range" min="1.0" max="2.6" value="1.6" step="0.1" />
-    <span id="lineHeightValue" style="min-width:30px;text-align:center;">1.6</span>
-  </label>
-
-  <button id="btnPdf" class="btn primary" title="פותח את חלון ההדפסה — בחר 'שמור כ-PDF' כיעד">📄 ייצוא PDF</button>
+  <button id="btnNew" class="btn">+ חדש</button>
+  <button id="btnImport" class="btn">⬆ פתח .cho</button>
+  <input id="fileInput" type="file" accept=".cho,.crd,.pro,.chopro,.txt" style="display:none" />
+  <button id="btnCols" class="btn" title="עמודה אחת / שתי עמודות בהדפסה">▥ שתי עמודות</button>
+  <button id="btnExport" class="btn primary">⬇ שמור .cho</button>
+  <button id="btnPdf" class="btn primary">📄 PDF</button>
 </header>
 
 <main>
-  <aside class="pane" style="padding:12px;overflow:auto;">
-    <div class="actions-row">
-      <button id="btnNew" class="btn primary">+ חדש</button>
-      <button id="btnSave" class="btn">💾 שמור</button>
-    </div>
-    <div class="actions-row">
-      <button id="btnExport" class="btn">⬇ ייצוא</button>
-      <button id="btnImport" class="btn">⬆ ייבוא</button>
-      <input id="fileInput" type="file" accept=".json,.txt" style="display:none" />
-    </div>
-
-    <div style="font-size:12px;color:var(--muted);margin:8px 0 6px;text-transform:uppercase;letter-spacing:.5px;">השירים שלי</div>
-    <ul id="songList"></ul>
-
-    <div class="help-section">
-      <strong style="color:var(--text);">לעברית — אקורדים בתוך השורה (מומלץ):</strong><br>
-      <b>תחילת מילה:</b> <code>[Am]שלום</code><br>
-      <b>אמצע מילה:</b> <code>של[Am]ום</code> &larr; Am מעל "ום"<br>
-      <b>סוף מילה:</b> <code>שלום[Am]</code><br>
-      <b>שילוב חופשי:</b> <code>[Am]בו[G]קר [F]טוב[E]</code><br><br>
-
-      <strong style="color:var(--text);">פורמט אנגלית — אקורדים בשורה מעל:</strong><br>
-      <code>C&nbsp;&nbsp;&nbsp;&nbsp;G&nbsp;&nbsp;&nbsp;&nbsp;Am</code><br>
-      <code>Hello darling well</code><br><br>
-
-      <strong style="color:var(--text);">עברית + שורת אקורדים:</strong><br>
-      גם אם תכתוב <code>Am</code> מעל מילה עברית בשורה נפרדת — נמיר אוטומטית לפי מיקום-המקור של האקורד מעל התו המתאים. אבל ב-textarea עברית מיושרת לימין ואקורדים לשמאל, אז קשה ליישר ויזואלית. עדיף לכתוב <code>[Am]שלום</code>.<br><br>
-
-      <strong style="color:var(--text);">כותרות חלקים:</strong><br>
-      <code>[פזמון]</code> · <code>פזמון:</code> · <code>[Chorus]</code><br><br>
-
-      <strong style="color:var(--text);">קיצורים:</strong><br>
-      <span style="font-family:inherit;">Ctrl+Alt+A…G הכנסת אקורד בסמן<br>
-      Ctrl+Shift+R שורה ל-RTL · Ctrl+Shift+L ל-LTR<br>
-      Ctrl+S שמירה · Ctrl+↑/↓ טרנספוז</span>
-    </div>
-  </aside>
-
   <div class="pane" id="editor-pane">
     <div class="pane-header">
-      <span>עריכה</span>
+      <span></span>
       <span id="editorStats" style="color:var(--muted);font-size:11px;"></span>
     </div>
-    <div class="chord-palette" id="chordPalette">
-      <button data-chord="A">A</button>
-      <button data-chord="Am">Am</button>
-      <button data-chord="A7">A7</button>
-      <button data-chord="Amaj7">Amaj7</button>
-      <button data-chord="Am7">Am7</button>
-      <button data-chord="Bm">Bm</button>
-      <button data-chord="B7">B7</button>
-      <button data-chord="Bm7">Bm7</button>
-      <button data-chord="C">C</button>
-      <button data-chord="C7">C7</button>
-      <button data-chord="Cmaj7">Cmaj7</button>
-      <button data-chord="D">D</button>
-      <button data-chord="Dm">Dm</button>
-      <button data-chord="D7">D7</button>
-      <button data-chord="Dmaj7">Dmaj7</button>
-      <button data-chord="Dm7">Dm7</button>
-      <button data-chord="E">E</button>
-      <button data-chord="Em">Em</button>
-      <button data-chord="E7">E7</button>
-      <button data-chord="Em7">Em7</button>
-      <button data-chord="F">F</button>
-      <button data-chord="F#m">F#m</button>
-      <button data-chord="Fmaj7">Fmaj7</button>
-      <button data-chord="G">G</button>
-      <button data-chord="Gm">Gm</button>
-      <button data-chord="G7">G7</button>
-      <button data-chord="Gmaj7">Gmaj7</button>
-      <button data-chord="Bb">Bb</button>
-      <button data-chord="Csus4">Csus4</button>
-      <button data-chord="Dsus4">Dsus4</button>
-      <button data-chord="Cadd9">Cadd9</button>
-      <button data-chord="Cdim">Cdim</button>
-      <button data-chord="Caug">Caug</button>
-      <span class="hint">Ctrl+Alt+A…G</span>
-      <input type="text" id="chordInput" placeholder="אקורד מותאם ↵" />
+    <div class="palette" id="palette">
+      <span class="label">דירקטיבות:</span>
+      <button data-snippet="{title: }" data-cursor="-1">title</button>
+      <button data-snippet="{artist: }" data-cursor="-1">artist</button>
+      <button data-snippet="{key: }" data-cursor="-1">key</button>
+      <button data-snippet="{capo: }" data-cursor="-1">capo</button>
+      <button data-snippet="{tempo: }" data-cursor="-1">tempo</button>
+      <button data-snippet="{comment: }" data-cursor="-1">comment</button>
+      <button data-snippet="{start_of_verse}&#10;&#10;{end_of_verse}" data-cursor="-15">verse</button>
+      <button data-snippet="{start_of_chorus}&#10;&#10;{end_of_chorus}" data-cursor="-16">chorus</button>
+      <button data-snippet="{start_of_bridge}&#10;&#10;{end_of_bridge}" data-cursor="-16">bridge</button>
+      <span class="label">אקורדים:</span>
+      <button class="chord" data-chord="A">A</button>
+      <button class="chord" data-chord="Am">Am</button>
+      <button class="chord" data-chord="A7">A7</button>
+      <button class="chord" data-chord="Amaj7">Amaj7</button>
+      <button class="chord" data-chord="Am7">Am7</button>
+      <button class="chord" data-chord="Bm">Bm</button>
+      <button class="chord" data-chord="B7">B7</button>
+      <button class="chord" data-chord="Bm7">Bm7</button>
+      <button class="chord" data-chord="Bb">Bb</button>
+      <button class="chord" data-chord="C">C</button>
+      <button class="chord" data-chord="C7">C7</button>
+      <button class="chord" data-chord="Cmaj7">Cmaj7</button>
+      <button class="chord" data-chord="D">D</button>
+      <button class="chord" data-chord="Dm">Dm</button>
+      <button class="chord" data-chord="D7">D7</button>
+      <button class="chord" data-chord="Dmaj7">Dmaj7</button>
+      <button class="chord" data-chord="Dm7">Dm7</button>
+      <button class="chord" data-chord="E">E</button>
+      <button class="chord" data-chord="Em">Em</button>
+      <button class="chord" data-chord="E7">E7</button>
+      <button class="chord" data-chord="Em7">Em7</button>
+      <button class="chord" data-chord="F">F</button>
+      <button class="chord" data-chord="F#m">F#m</button>
+      <button class="chord" data-chord="Fmaj7">Fmaj7</button>
+      <button class="chord" data-chord="G">G</button>
+      <button class="chord" data-chord="Gm">Gm</button>
+      <button class="chord" data-chord="G7">G7</button>
+      <button class="chord" data-chord="Gmaj7">Gmaj7</button>
+      <button class="chord" data-chord="Csus4">Csus4</button>
+      <button class="chord" data-chord="Dsus4">Dsus4</button>
+      <button class="chord" data-chord="Cadd9">Cadd9</button>
+      <button class="chord" data-chord="Cdim">Cdim</button>
+      <button class="chord" data-chord="Caug">Caug</button>
+      <input id="chordInput" type="text" placeholder="אקורד מותאם ↵" />
     </div>
-    <textarea id="editor" dir="auto" spellcheck="false" placeholder="הכנס את מילות השיר כאן...
+    <textarea id="editor" dir="auto" spellcheck="false" placeholder="{title: שם השיר}
+{artist: שם האומן}
+{key: Am}
 
-ניתן להניח אקורדים בכל מקום במילה:
-[פזמון]
-[Am]ערב של כוכ[G]בים עולה ה[F]רוח[E]
-שיר יש[Am]ן חוזר אלי [G]שוב
+{start_of_verse}
+[Am]ערב של [Dm]שושנים
+[E7]נצא נא אל ה[Am]בוסתן
+{end_of_verse}
 
-פורמט אנגלית (אקורדים מעל בשורה נפרדת):
-[Verse]
-C            G          Am         F
-Hello darkness my old friend"></textarea>
+{start_of_chorus}
+[Dm]לילה יורד [Am]לאט
+ו[E7]רוח שושן נו[Am]שבה
+{end_of_chorus}"></textarea>
   </div>
 
   <div class="pane">
@@ -695,55 +559,38 @@ Hello darkness my old friend"></textarea>
 </main>
 
 <script>
-// ========== Chord music theory ==========
+// ========== Chord music theory (shared with main editor) ==========
 const NOTES_SHARP = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
 const NOTES_FLAT  = ['C','Db','D','Eb','E','F','Gb','G','Ab','A','Bb','B'];
-
-// Matches root note + everything else (quality, extensions, slash bass)
-const CHORD_RE = /^([A-G])([#b]?)((?:maj|min|m|sus|dim|aug|add|M|°|ø)?[\dM\+\-#b()sucadijmgo°ø/A-G]*)?$/;
 
 function parseRoot(token) {
   const m = token.match(/^([A-G])([#b]?)(.*)$/);
   if (!m) return null;
   return { letter: m[1], accidental: m[2], rest: m[3] };
 }
-
 function noteToIdx(note) {
   let i = NOTES_SHARP.indexOf(note);
   if (i !== -1) return i;
-  i = NOTES_FLAT.indexOf(note);
-  return i;
+  return NOTES_FLAT.indexOf(note);
 }
-
 function transposeNote(note, semitones, useFlats) {
   const idx = noteToIdx(note);
   if (idx === -1) return note;
   const newIdx = ((idx + semitones) % 12 + 12) % 12;
   return useFlats ? NOTES_FLAT[newIdx] : NOTES_SHARP[newIdx];
 }
-
 function transposeChord(chord, semitones, useFlats) {
   if (semitones === 0) return chord;
-  // Handle slash chord
   const slashIdx = chord.indexOf('/');
   if (slashIdx > 0) {
-    const main = chord.slice(0, slashIdx);
-    const bass = chord.slice(slashIdx + 1);
-    return transposeChord(main, semitones, useFlats) + '/' + transposeChord(bass, semitones, useFlats);
+    return transposeChord(chord.slice(0, slashIdx), semitones, useFlats) + '/' +
+           transposeChord(chord.slice(slashIdx + 1), semitones, useFlats);
   }
   const parsed = parseRoot(chord);
   if (!parsed) return chord;
-  const root = parsed.letter + parsed.accidental;
-  const newRoot = transposeNote(root, semitones, useFlats);
+  const newRoot = transposeNote(parsed.letter + parsed.accidental, semitones, useFlats);
   return newRoot + parsed.rest;
 }
-
-// Chord token check — root must be A-G with optional #/b, body can be any
-// sequence of chord-flavored characters so we cover combos like:
-//   Cmaj7, CMaj7, CΔ7, C7sus4, Cmaj7#11, Cm7b5, Cm7add9, Cadd9add11,
-//   F#m7b5, Bbmaj9, Cø7, C+, C-, C13, Co, Co7, etc.
-// Permissive (will accept some nonsense like "Casdf") but chord lines
-// almost never contain plain English words, so this is a safe trade-off.
 function isChordToken(token) {
   if (!token) return false;
   const t = token.replace(/^\(|\)$/g, '');
@@ -755,124 +602,64 @@ function isChordToken(token) {
   return /^[A-G][#b]?[A-Za-z0-9#b+°øΔ△()\-]*$/.test(t);
 }
 
+// Strip leading Unicode bidi control marks (LRM/RLM/embedding/override/
+// isolate). These are inserted by Ctrl+Shift+L/R to force a line's editor
+// direction; the parser ignores them so chord/section detection works.
+function stripLeadingBidi(s) {
+  return s.replace(/^[\u200E\u200F\u202A-\u202E\u2066-\u2069]+/, '');
+}
+
+// Read a forced direction from the leading bidi marks of a raw line. This
+// lets the preview honor the user's per-line direction picks (Ctrl+Shift+R
+// / Ctrl+Shift+L in the editor) — without it, the preview only listened to
+// the document-wide Hebrew detection and ignored per-line marks entirely.
+function getForcedLineDir(raw) {
+  if (!raw || raw.length === 0) return null;
+  const ch = raw.charCodeAt(0);
+  // RTL strong marks: RLM, RLE, RLO, RLI
+  if (ch === 0x200F || ch === 0x202B || ch === 0x202E || ch === 0x2067) return 'rtl';
+  // LTR strong marks: LRM, LRE, LRO, LRI
+  if (ch === 0x200E || ch === 0x202A || ch === 0x202D || ch === 0x2066) return 'ltr';
+  return null;
+}
+
+// A token made entirely of backslashes is a "repeat marker" — the user
+// writes `Am \ \ \ Dm` to mark how many times a chord is played. We accept
+// it as a valid chord-line token (so the line still pairs with the lyric
+// below) but skip transposition / chord-wrapping in the renderer.
+function isRepeatMarker(token) {
+  return /^\\+$/.test(token);
+}
+
+// Treat a line as chord-only if every whitespace-separated token (plain,
+// bracketed, or a repeat marker) is valid. Requires at least one real chord
+// so a line of pure `\` markers is not mistaken for a chord line.
 function isChordOnlyLine(line) {
   const trimmed = line.trim();
   if (!trimmed) return false;
-  // Walk through the line accepting both plain tokens (`Am`) and bracketed
-  // tokens (`[Am]`) — palette inserts add brackets into existing chord-only
-  // lines, and without this both formats together broke chord detection.
-  let i = 0;
-  let count = 0;
+  let i = 0, chordCount = 0;
   while (i < trimmed.length) {
     if (/\s/.test(trimmed[i])) { i++; continue; }
     if (trimmed[i] === '[') {
       const close = trimmed.indexOf(']', i + 1);
       if (close === -1) return false;
-      const chord = trimmed.slice(i + 1, close).trim();
-      if (!isChordToken(chord)) return false;
-      count++;
-      i = close + 1;
+      const inner = trimmed.slice(i + 1, close).trim();
+      if (!isChordToken(inner)) return false;
+      chordCount++; i = close + 1;
     } else {
       let end = i;
       while (end < trimmed.length && !/\s/.test(trimmed[end]) && trimmed[end] !== '[') end++;
       const token = trimmed.slice(i, end);
-      if (!isChordToken(token)) return false;
-      count++;
+      if (isChordToken(token)) chordCount++;
+      else if (!isRepeatMarker(token)) return false;
       i = end;
     }
   }
-  return count > 0;
+  return chordCount > 0;
 }
 
-function isSectionLine(line) {
-  const trimmed = line.trim();
-  if (!trimmed) return false;
-  // A bracketed section is a SINGLE `[X]` token only — `[פזמון]`, `[Verse]`,
-  // `[Chorus 1]`. A line like `[Bb] [F] [E]` (multiple bracketed chords) must
-  // NOT match here, otherwise it gets styled as a section title and its
-  // chords never reach the transpose path.
-  if (/^\[[^\]]+\]$/.test(trimmed)) {
-    // …and only if the inside is NOT a chord — chord-only line takes priority.
-    const inner = trimmed.slice(1, -1).trim();
-    if (!isChordToken(inner)) return true;
-  }
-  if (/^(?:פזמון|בית|מעבר|סיום|פתיחה|גשר|אינטרו|אאוטרו|סולו|verse|chorus|bridge|intro|outro|solo|pre[-\s]?chorus|interlude|tag|coda)(?:\s+\d+)?:?$/i.test(trimmed)) return true;
-  return false;
-}
-
-// ========== Parser ==========
-// Detects original key from first chord found
-function detectKey(text) {
-  const lines = text.split('\n');
-  for (const line of lines) {
-    const positions = extractChordPositions(line);
-    if (positions.length > 0 && isChordToken(positions[0].chord)) {
-      const parsed = parseRoot(positions[0].chord.replace(/^\(|\)$/g, ''));
-      if (parsed) return parsed.letter + parsed.accidental;
-    }
-  }
-  return null;
-}
-
-// Strip leading Unicode bidi control characters (LRM/RLM/embeddings/overrides
-// and isolates) — they're direction hints inserted by Ctrl+Shift+L/R and must
-// not interfere with chord/section detection or chord-column positioning.
-function stripLeadingBidi(s) {
-  return s.replace(/^[‎‏‪-‮⁦-⁩]+/, '');
-}
-
-// Parse text into structured representation
-function parseText(text) {
-  const lines = text.split('\n');
-  const result = [];
-  let i = 0;
-  while (i < lines.length) {
-    const line = stripLeadingBidi(lines[i]);
-    // Section heading
-    if (isSectionLine(line)) {
-      result.push({ type: 'section', text: line.trim() });
-      i++; continue;
-    }
-    // Chord-only line — pair with next non-empty line if lyrics. Checked
-    // BEFORE the generic inline-format check so a mixed line like
-    // `Am [G] Dm` (palette-inserted chord into a chord-only line) is still
-    // treated as a chord-only line and every chord transposes together.
-    if (isChordOnlyLine(line)) {
-      const nextLine = lines[i + 1] !== undefined ? stripLeadingBidi(lines[i + 1]) : undefined;
-      if (nextLine !== undefined && !isChordOnlyLine(nextLine) && !isSectionLine(nextLine) && !/\[[^\]]+\]/.test(nextLine) && nextLine.trim() !== '') {
-        if (/[֐-׿]/.test(nextLine)) {
-          result.push({ type: 'inline', raw: chordPairToInline(line, nextLine) });
-        } else {
-          result.push({ type: 'chordpair', chordLine: line, lyricLine: nextLine });
-        }
-        i += 2; continue;
-      } else {
-        result.push({ type: 'chordonly', text: line });
-        i++; continue;
-      }
-    }
-    // Inline [chord] format (lyric text with chord markers in the middle)
-    if (/\[[^\]]+\]/.test(line)) {
-      result.push({ type: 'inline', raw: line });
-      i++; continue;
-    }
-    // Plain lyric / empty
-    result.push({ type: 'lyric', text: line });
-    i++;
-  }
-  return result;
-}
-
-// ========== Rendering ==========
-function escapeHtml(s) {
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-}
-
-// Parse a chord line: return array of {col, chord, len}. Handles both plain
-// tokens (`Am`) and bracketed tokens (`[Am]`) — a mixed line like
-// `Am [G] Dm` produces three positions just like `Am G Dm`. Without this,
-// inserting a chord from the palette into an existing chord-only line would
-// orphan the surrounding plain tokens and break transpose for them.
+// Extract each chord/marker with its source-column position. Markers carry
+// kind: 'marker' so the renderer can leave them as plain text.
 function extractChordPositions(line) {
   const positions = [];
   let i = 0;
@@ -881,102 +668,191 @@ function extractChordPositions(line) {
     if (line[i] === '[') {
       const close = line.indexOf(']', i + 1);
       if (close === -1) { i++; continue; }
-      const chord = line.slice(i + 1, close).trim();
-      positions.push({ col: i, chord, len: close - i + 1 });
+      positions.push({ col: i, chord: line.slice(i + 1, close).trim(), len: close - i + 1, kind: 'chord' });
       i = close + 1;
     } else {
       let end = i;
       while (end < line.length && !/\s/.test(line[end]) && line[end] !== '[') end++;
-      positions.push({ col: i, chord: line.slice(i, end), len: end - i });
+      const token = line.slice(i, end);
+      const kind = isRepeatMarker(token) ? 'marker' : 'chord';
+      positions.push({ col: i, chord: token, len: end - i, kind });
       i = end;
     }
   }
   return positions;
 }
 
-// Snap each chord to the lyric word it's closest to in source column. A
-// chord whose column falls inside a word span maps to that word; otherwise
-// it goes to whichever word's start/end is nearest. Multiple chords may
-// snap to the same word — they stack in source order above it.
-function chordPairToInline(chordLine, lyricLine) {
-  const positions = extractChordPositions(chordLine);
-  if (positions.length === 0) return lyricLine;
+// ========== ChordPro parser ==========
+// Directives recognized (canonical → short alias map for normalization)
+const DIRECTIVE_ALIASES = {
+  t: 'title', title: 'title',
+  st: 'subtitle', subtitle: 'subtitle', artist: 'subtitle',
+  key: 'key', capo: 'capo', tempo: 'tempo', time: 'time',
+  album: 'album', year: 'year', composer: 'composer', lyricist: 'lyricist',
+  c: 'comment', comment: 'comment',
+  ci: 'comment_italic', comment_italic: 'comment_italic',
+  cb: 'comment_box', comment_box: 'comment_box',
+  sov: 'start_of_verse', start_of_verse: 'start_of_verse',
+  eov: 'end_of_verse', end_of_verse: 'end_of_verse',
+  soc: 'start_of_chorus', start_of_chorus: 'start_of_chorus',
+  eoc: 'end_of_chorus', end_of_chorus: 'end_of_chorus',
+  sob: 'start_of_bridge', start_of_bridge: 'start_of_bridge',
+  eob: 'end_of_bridge', end_of_bridge: 'end_of_bridge',
+  sot: 'start_of_tab', start_of_tab: 'start_of_tab',
+  eot: 'end_of_tab', end_of_tab: 'end_of_tab',
+  np: 'new_page', new_page: 'new_page', new_song: 'new_song',
+};
 
-  const words = [];
-  let ws = null;
-  for (let i = 0; i < lyricLine.length; i++) {
-    if (/\S/.test(lyricLine[i])) {
-      if (ws === null) ws = i;
-    } else if (ws !== null) {
-      words.push({ start: ws, end: i - 1 });
-      ws = null;
+function parseChordPro(text) {
+  const lines = text.split('\n');
+  const meta = {};
+  const items = [];
+  let currentSection = null;
+  let i = 0;
+  while (i < lines.length) {
+    const raw = lines[i];
+    // Note the user's per-line direction pick (if any) BEFORE stripping
+    // the bidi marks, then strip them so chord/section detection works.
+    const forcedDir = getForcedLineDir(raw);
+    const line = stripLeadingBidi(raw);
+    const trimmed = line.trim();
+    if (!trimmed) {
+      items.push({ type: 'blank' });
+      i++; continue;
     }
-  }
-  if (ws !== null) words.push({ start: ws, end: lyricLine.length - 1 });
-
-  if (words.length === 0) {
-    return positions.map(p => '[' + p.chord + ']').join('') + lyricLine;
-  }
-
-  const distTo = (col, w) =>
-    col >= w.start && col <= w.end
-      ? 0
-      : Math.min(Math.abs(col - w.start), Math.abs(col - w.end));
-
-  const chordsAt = new Map();
-  for (const p of positions) {
-    let bestIdx = 0;
-    let bestDist = distTo(p.col, words[0]);
-    for (let k = 1; k < words.length; k++) {
-      const d = distTo(p.col, words[k]);
-      if (d < bestDist) { bestDist = d; bestIdx = k; }
+    if (trimmed.startsWith('#')) { i++; continue; }
+    const dir = trimmed.match(/^\{([^:}]+?)(?::\s*(.*?))?\s*\}$/);
+    if (dir) {
+      const name = (DIRECTIVE_ALIASES[dir[1].trim().toLowerCase()]) || dir[1].trim().toLowerCase();
+      const value = (dir[2] || '').trim();
+      switch (name) {
+        case 'title': meta.title = value; break;
+        case 'subtitle': meta.artist = value; break;
+        case 'key': meta.key = value; break;
+        case 'capo': meta.capo = value; break;
+        case 'tempo': meta.tempo = value; break;
+        case 'time': meta.time = value; break;
+        case 'album': meta.album = value; break;
+        case 'year': meta.year = value; break;
+        case 'composer': meta.composer = value; break;
+        case 'lyricist': meta.lyricist = value; break;
+        case 'comment':
+        case 'comment_italic':
+        case 'comment_box':
+          items.push({ type: 'comment', text: value, style: name });
+          break;
+        case 'start_of_verse':
+          currentSection = { kind: 'verse', label: value };
+          items.push({ type: 'section_start', kind: 'verse', label: value });
+          break;
+        case 'start_of_chorus':
+          currentSection = { kind: 'chorus', label: value };
+          items.push({ type: 'section_start', kind: 'chorus', label: value });
+          break;
+        case 'start_of_bridge':
+          currentSection = { kind: 'bridge', label: value };
+          items.push({ type: 'section_start', kind: 'bridge', label: value });
+          break;
+        case 'end_of_verse':
+        case 'end_of_chorus':
+        case 'end_of_bridge':
+          items.push({ type: 'section_end' });
+          currentSection = null;
+          break;
+        case 'new_page':
+          items.push({ type: 'page_break' });
+          break;
+        default:
+          // Unknown directive — ignore silently. ChordPro renderers
+          // commonly do this so unknown extensions don't break things.
+          break;
+      }
+      i++; continue;
     }
-    const pos = words[bestIdx].start;
-    if (!chordsAt.has(pos)) chordsAt.set(pos, []);
-    chordsAt.get(pos).push(p.chord);
-  }
-
-  let out = '';
-  for (let i = 0; i <= lyricLine.length; i++) {
-    if (chordsAt.has(i)) {
-      for (const c of chordsAt.get(i)) out += '[' + c + ']';
+    // Non-standard but very convenient: detect a chord-only line followed by
+    // a lyric line and render them as a column-aligned chord-over-lyric pair
+    // (monospace, spaces in the chord line shift the chord visually).
+    if (isChordOnlyLine(line)) {
+      const rawNext = lines[i + 1];
+      const next = rawNext === undefined ? undefined : stripLeadingBidi(rawNext);
+      const nextTrim = next === undefined ? '' : next.trim();
+      const nextIsDirective = /^\{/.test(nextTrim);
+      const nextIsHash = nextTrim.startsWith('#');
+      if (next !== undefined && nextTrim && !isChordOnlyLine(next) && !nextIsDirective && !nextIsHash) {
+        // For chord-pair, either line's forced direction wins (lyric first).
+        const pairDir = getForcedLineDir(rawNext) || forcedDir;
+        items.push({ type: 'chord_pair', chordLine: line, lyricLine: next, forcedDir: pairDir });
+        i += 2; continue;
+      }
+      items.push({ type: 'chord_only', text: line, forcedDir });
+      i++; continue;
     }
-    if (i < lyricLine.length) out += lyricLine[i];
+    items.push({ type: 'lyric', text: line, forcedDir });
+    i++;
   }
-  return out;
+  return { meta, items };
 }
 
-// Render a chord-line as HTML: each chord is its own <bdi dir="ltr"> atom.
-// In an RTL preview, isolated LTR atoms get placed in RTL word-order — first
-// chord at the right, next to the left — while each chord's letters stay in
-// natural LTR reading order. Source-column spaces between chords are
-// preserved so the visual gaps still mirror the source spacing.
-function renderChordLineHtml(line, semitones, useFlats) {
+// ========== Render ChordPro to HTML ==========
+function escapeHtml(s) {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+// Hebrew detector: any U+0590-U+05FF in the song body decides RTL
+function songHasHebrew(text) { return /[֐-׿]/.test(text); }
+
+// Render a chord-line with each chord wrapped in <bdi> and the original
+// source spaces preserved between them. With white-space: pre and monospace
+// font, every source space is exactly one column wide, so adding/removing
+// spaces in the editor moves the chord visually in the preview. When a
+// chord grows after transpose (e.g. F → F#) and would collide with the
+// next chord, we still keep at least 1 space between them so the chord
+// names don't visually run together.
+function renderChordOnly(line, semi, useFlats) {
   const positions = extractChordPositions(line);
   let out = '';
   let cursor = 0;
   for (const p of positions) {
-    const newChord = transposeChord(p.chord, semitones, useFlats);
     if (p.col > cursor) {
       out += ' '.repeat(p.col - cursor);
-    } else if (cursor > p.col) {
+    } else if (out !== '') {
+      // Source column would collide with the previous (transposed) chord —
+      // pad a single space so adjacent tokens stay readable.
       out += ' ';
     }
-    out += `<bdi dir="ltr" class="chord-token">${escapeHtml(newChord)}</bdi>`;
-    cursor = Math.max(p.col, cursor) + newChord.length;
+    if (p.kind === 'marker') {
+      // Repeat marker (\, \\, …) — render as plain text, no transpose.
+      out += `<span class="chord-marker">${escapeHtml(p.chord)}</span>`;
+      cursor = Math.max(p.col, cursor) + p.chord.length;
+    } else {
+      const display = isChordToken(p.chord) ? transposeChord(p.chord, semi, useFlats) : p.chord;
+      out += `<bdi dir="ltr" class="chord-token">${escapeHtml(display)}</bdi>`;
+      cursor = Math.max(p.col, cursor) + display.length;
+    }
   }
   return out;
 }
 
-function renderInlineLine(raw, semitones, useFlats) {
-  // Walk the line and build cells. A cell collects 0+ chords followed by
-  // some lyric text. Consecutive `[chord][chord]…` markers stack inside the
-  // same cell so they all appear above the same word. The cell closes at
-  // the next whitespace after the chord(s)+word, then a new cell starts.
+// chord-over-lyric pair — two stacked monospace lines that share column
+// positions. Direction priority: user's forced dir (Ctrl+Shift+R/L marker)
+// → Hebrew detection on the lyric. For Hebrew, source column N corresponds
+// to visual column N from the right edge.
+function renderChordPair(chordLine, lyricLine, semi, useFlats, forcedDir) {
+  const dir = forcedDir || (/[֐-׿]/.test(lyricLine) ? 'rtl' : 'ltr');
+  const chordHtml = renderChordOnly(chordLine, semi, useFlats);
+  return `<div class="chord-pair" dir="${dir}">
+    <div class="chord-row">${chordHtml || '&nbsp;'}</div>
+    <div class="lyric-row">${escapeHtml(lyricLine) || '&nbsp;'}</div>
+  </div>`;
+}
+
+// Walk a `[chord]lyric` line into chord+word cells. Same algorithm as the
+// main editor: chords accumulate on `pendingChords` until whitespace flushes
+// the current cell. Plain text before the first chord forms a no-chord cell.
+function renderLyricLine(raw, semitones, useFlats, forcedDir) {
   const cells = [];
   let pendingChords = [];
   let pendingLyric = '';
-
   const flush = () => {
     if (pendingChords.length > 0 || pendingLyric !== '') {
       cells.push({ chords: pendingChords.slice(), lyric: pendingLyric });
@@ -984,14 +860,11 @@ function renderInlineLine(raw, semitones, useFlats) {
     pendingChords = [];
     pendingLyric = '';
   };
-
   let i = 0;
   while (i < raw.length) {
     if (raw[i] === '[') {
       const close = raw.indexOf(']', i + 1);
       if (close > i) {
-        // A chord marker after we've already collected some lyric: the
-        // chord belongs to a new cell.
         if (pendingLyric !== '') flush();
         pendingChords.push(raw.slice(i + 1, close).trim());
         i = close + 1;
@@ -999,89 +872,94 @@ function renderInlineLine(raw, semitones, useFlats) {
       }
     }
     pendingLyric += raw[i];
-    if (/\s/.test(raw[i]) && pendingChords.length > 0) {
-      flush();
-    }
+    if (/\s/.test(raw[i]) && pendingChords.length > 0) flush();
     i++;
   }
   flush();
-
-  if (cells.length === 0) {
-    return `<div class="song-line lyric-line">&nbsp;</div>`;
-  }
-
+  if (cells.length === 0) return '<div class="lyric-line"></div>';
   let html = '';
   for (const cell of cells) {
-    const chordDisplays = cell.chords.map(c =>
-      isChordToken(c) ? transposeChord(c, semitones, useFlats) : c
-    );
-    const chordHtml = chordDisplays.length === 0
+    const chordHtml = cell.chords.length === 0
       ? '&nbsp;'
-      : chordDisplays.map(c => `<bdi dir="ltr">${escapeHtml(c)}</bdi>`).join('');
-    const lyricHtml = cell.lyric === '' ? '&nbsp;' : escapeHtml(cell.lyric);
-    html += `<span class="cell"><span class="chord">${chordHtml}</span><span class="lyric">${lyricHtml}</span></span>`;
+      : cell.chords.map(c => {
+          const display = isChordToken(c) ? transposeChord(c, semitones, useFlats) : c;
+          return `<bdi dir="ltr">${escapeHtml(display)}</bdi>`;
+        }).join('');
+    const lyric = cell.lyric === '' ? '&nbsp;' : escapeHtml(cell.lyric);
+    html += `<span class="cell"><span class="chord">${chordHtml}</span><span class="lyric">${lyric}</span></span>`;
   }
-
-  return `<div class="inline-line">${html}</div>`;
+  const dirAttr = forcedDir ? ` dir="${forcedDir}"` : '';
+  return `<div class="lyric-line"${dirAttr}>${html}</div>`;
 }
 
-function renderItem(item, semitones, useFlats) {
-  switch (item.type) {
-    case 'section':
-      return `<div class="song-line section-line">${escapeHtml(item.text)}</div>`;
-    case 'inline':
-      return renderInlineLine(item.raw, semitones, useFlats);
-    case 'chordpair': {
-      const chordHtml = renderChordLineHtml(item.chordLine, semitones, useFlats);
-      return `<div class="song-line chord-line">${chordHtml || '&nbsp;'}</div>`
-        + `<div class="song-line lyric-line">${escapeHtml(item.lyricLine) || '&nbsp;'}</div>`;
-    }
-    case 'chordonly': {
-      const chordHtml = renderChordLineHtml(item.text, semitones, useFlats);
-      return `<div class="song-line chord-line">${chordHtml || '&nbsp;'}</div>`;
-    }
-    case 'lyric':
-      return `<div class="song-line lyric-line">${escapeHtml(item.text) || '&nbsp;'}</div>`;
+function renderChordPro(parsed, semitones, useFlats) {
+  const { meta, items } = parsed;
+  let html = '';
+  // Title block
+  if (meta.title) html += `<h1 class="song-title">${escapeHtml(meta.title)}</h1>`;
+  if (meta.artist) html += `<p class="song-artist">${escapeHtml(meta.artist)}</p>`;
+  // Meta info row — key/capo/tempo
+  const metaParts = [];
+  if (meta.key) {
+    const transposedKey = transposeNote(meta.key.replace(/m$/, ''), semitones, useFlats) +
+                          (meta.key.endsWith('m') ? 'm' : '');
+    metaParts.push(`<span>סולם: ${escapeHtml(transposedKey)}${semitones !== 0 ? ` (מקור: ${escapeHtml(meta.key)})` : ''}</span>`);
   }
-  return '';
-}
+  if (meta.capo) metaParts.push(`<span>קאפו: ${escapeHtml(meta.capo)}</span>`);
+  if (meta.tempo) metaParts.push(`<span>tempo: ${escapeHtml(meta.tempo)}</span>`);
+  if (meta.time) metaParts.push(`<span>${escapeHtml(meta.time)}</span>`);
+  if (metaParts.length) html += `<p class="song-meta">${metaParts.join('')}</p>`;
 
-function render(parsed, semitones, useFlats) {
-  // Group into blocks separated by blank lyric lines / section headers, so
-  // two-column mode keeps verses intact via break-inside:avoid.
-  const blocks = [];
-  let current = [];
-  const flush = () => {
-    if (current.length > 0) {
-      blocks.push(current);
-      current = [];
+  // Body
+  let openSection = null;
+  let sectionBuffer = '';
+  const flushSection = () => {
+    if (openSection !== null) {
+      const labelHtml = openSection.label
+        ? `<div class="section-label">${escapeHtml(openSection.label)}</div>`
+        : `<div class="section-label">${openSection.kind}</div>`;
+      html += `<div class="section ${openSection.kind}">${labelHtml}${sectionBuffer}</div>`;
+      openSection = null;
+      sectionBuffer = '';
     }
   };
-  for (const item of parsed) {
-    if (item.type === 'section') {
-      flush();
-      current.push(item);
-    } else if (item.type === 'lyric' && item.text.trim() === '') {
-      flush();
-    } else {
-      current.push(item);
+  for (const item of items) {
+    if (item.type === 'section_start') {
+      flushSection();
+      openSection = { kind: item.kind, label: item.label };
+      continue;
     }
+    if (item.type === 'section_end') {
+      flushSection();
+      continue;
+    }
+    if (item.type === 'page_break') {
+      flushSection();
+      html += '<div style="page-break-after: always; break-after: page;"></div>';
+      continue;
+    }
+    let line = '';
+    if (item.type === 'comment') {
+      line = `<div class="comment">${escapeHtml(item.text)}</div>`;
+    } else if (item.type === 'lyric') {
+      line = renderLyricLine(item.text, semitones, useFlats, item.forcedDir);
+    } else if (item.type === 'chord_pair') {
+      line = renderChordPair(item.chordLine, item.lyricLine, semitones, useFlats, item.forcedDir);
+    } else if (item.type === 'chord_only') {
+      const dir = item.forcedDir || (/[֐-׿]/.test(item.text) ? 'rtl' : 'ltr');
+      line = `<div class="chord-pair" dir="${dir}"><div class="chord-row">${renderChordOnly(item.text, semitones, useFlats) || '&nbsp;'}</div></div>`;
+    } else if (item.type === 'blank') {
+      line = '<div class="lyric-line"></div>';
+    }
+    if (openSection) sectionBuffer += line;
+    else html += line;
   }
-  flush();
-
-  return blocks.map(block => {
-    const html = block.map(it => renderItem(it, semitones, useFlats)).join('');
-    return `<div class="block">${html}</div>`;
-  }).join('\n');
+  flushSection();
+  return html || '<div class="empty-hint">הקלד שיר בפורמט ChordPro מימין…</div>';
 }
 
-// ========== State & UI ==========
-const STORAGE_KEY = 'chordEditor.songs.v1';
-const SETTINGS_KEY = 'chordEditor.settings.v1';
-
+// ========== UI wiring ==========
 const els = {
-  title: document.getElementById('songTitle'),
-  artist: document.getElementById('songArtist'),
   editor: document.getElementById('editor'),
   preview: document.getElementById('preview'),
   transpose: document.getElementById('transpose'),
@@ -1092,505 +970,331 @@ const els = {
   currentKey: document.getElementById('currentKey'),
   originalKey: document.getElementById('originalKey'),
   useFlats: document.getElementById('useFlats'),
-  songList: document.getElementById('songList'),
-  btnNew: document.getElementById('btnNew'),
-  btnSave: document.getElementById('btnSave'),
-  btnExport: document.getElementById('btnExport'),
-  btnImport: document.getElementById('btnImport'),
-  fileInput: document.getElementById('fileInput'),
-  btnPdf: document.getElementById('btnPdf'),
-  btnCols: document.getElementById('btnCols'),
-  btnDir: document.getElementById('btnDir'),
   fontSize: document.getElementById('fontSize'),
   fontSizeValue: document.getElementById('fontSizeValue'),
   lineHeight: document.getElementById('lineHeight'),
   lineHeightValue: document.getElementById('lineHeightValue'),
+  btnNew: document.getElementById('btnNew'),
+  btnImport: document.getElementById('btnImport'),
+  btnExport: document.getElementById('btnExport'),
+  btnPdf: document.getElementById('btnPdf'),
+  btnCols: document.getElementById('btnCols'),
+  metaTitle: document.getElementById('metaTitle'),
+  metaArtist: document.getElementById('metaArtist'),
+  metaKey: document.getElementById('metaKey'),
+  fileInput: document.getElementById('fileInput'),
+  palette: document.getElementById('palette'),
+  chordInput: document.getElementById('chordInput'),
   printPageHeader: document.getElementById('printPageHeader'),
   editorStats: document.getElementById('editorStats'),
 };
 
-const DIR_MODES = ['auto', 'rtl', 'ltr'];
-const DIR_LABELS = {
-  auto: '⇆ אוטו',
-  rtl: '← ימין-לשמאל',
-  ltr: 'שמאל-לימין →'
-};
-let dirMode = localStorage.getItem('chordEditor.dirMode') || 'auto';
-
-function getEffectiveDir(text) {
-  if (dirMode === 'rtl' || dirMode === 'ltr') return dirMode;
-  // Auto: any Hebrew at all → RTL. Pure-English songs → LTR.
-  return /[֐-׿]/.test(text) ? 'rtl' : 'ltr';
-}
-
-let currentId = null;
-let songs = loadSongs();
-
-function loadSongs() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return JSON.parse(raw);
-  } catch(e) {}
-  return [];
-}
-function saveSongsToStorage() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(songs));
-}
-
-function loadSettings() {
-  try {
-    const raw = localStorage.getItem(SETTINGS_KEY);
-    if (raw) return JSON.parse(raw);
-  } catch(e) {}
-  return {};
-}
-function saveSettings() {
-  localStorage.setItem(SETTINGS_KEY, JSON.stringify({
-    useFlats: els.useFlats.checked
-  }));
-}
-
-function uuid() {
-  return 'song_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
-}
-
-function renderSongList() {
-  els.songList.innerHTML = '';
-  if (songs.length === 0) {
-    els.songList.innerHTML = '<li style="background:transparent;color:var(--muted);font-style:italic;cursor:default;">אין שירים שמורים</li>';
-    return;
-  }
-  // Sort by updated descending
-  const sorted = [...songs].sort((a,b) => (b.updated||0) - (a.updated||0));
-  for (const s of sorted) {
-    const li = document.createElement('li');
-    if (s.id === currentId) li.classList.add('active');
-    li.innerHTML = `
-      <div class="song-meta">
-        <div class="t">${escapeHtml(s.title || '(ללא שם)')}</div>
-        <div class="a">${escapeHtml(s.artist || '')}</div>
-      </div>
-      <button class="del" title="מחק">✕</button>
-    `;
-    li.addEventListener('click', (e) => {
-      if (e.target.classList.contains('del')) return;
-      loadSong(s.id);
-    });
-    li.querySelector('.del').addEventListener('click', (e) => {
-      e.stopPropagation();
-      if (confirm(`למחוק את "${s.title || '(ללא שם)'}"?`)) {
-        songs = songs.filter(x => x.id !== s.id);
-        if (currentId === s.id) {
-          currentId = null;
-          newSong(false);
-        }
-        saveSongsToStorage();
-        renderSongList();
-      }
-    });
-    els.songList.appendChild(li);
-  }
-}
-
-function loadSong(id) {
-  const s = songs.find(x => x.id === id);
-  if (!s) return;
-  currentId = id;
-  els.title.value = s.title || '';
-  els.artist.value = s.artist || '';
-  els.editor.value = s.text || '';
-  els.transpose.value = s.transpose || 0;
-  updateAll();
-  renderSongList();
-}
-
-function getCurrentSongData() {
-  return {
-    id: currentId || uuid(),
-    title: els.title.value,
-    artist: els.artist.value,
-    text: els.editor.value,
-    transpose: parseInt(els.transpose.value, 10),
-    updated: Date.now(),
-  };
-}
-
-function saveSong() {
-  const data = getCurrentSongData();
-  if (!data.title.trim() && !data.text.trim()) {
-    alert('לא ניתן לשמור שיר ריק. הוסף שם או תוכן.');
-    return;
-  }
-  const idx = songs.findIndex(x => x.id === data.id);
-  if (idx >= 0) {
-    songs[idx] = data;
-  } else {
-    songs.push(data);
-  }
-  currentId = data.id;
-  saveSongsToStorage();
-  renderSongList();
-  flashButton(els.btnSave, '✓ נשמר');
-}
-
-function flashButton(btn, msg) {
-  const orig = btn.textContent;
-  btn.textContent = msg;
-  btn.classList.add('primary');
-  setTimeout(() => { btn.textContent = orig; btn.classList.remove('primary'); }, 1200);
-}
-
-function newSong(confirmIfDirty=true) {
-  if (confirmIfDirty && els.editor.value.trim() && !confirm('להתחיל שיר חדש? שינויים לא שמורים יאבדו אם לא שמרת.')) return;
-  currentId = null;
-  els.title.value = '';
-  els.artist.value = '';
-  els.editor.value = '';
-  els.transpose.value = 0;
-  updateAll();
-  renderSongList();
-  els.title.focus();
-}
-
-function exportCurrent() {
-  const data = getCurrentSongData();
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-  const a = document.createElement('a');
-  const safeName = (data.title || 'song').replace(/[\\/:*?"<>|]/g, '_');
-  a.href = URL.createObjectURL(blob);
-  a.download = `${safeName}.json`;
-  a.click();
-  URL.revokeObjectURL(a.href);
-}
-
-function importFile(file) {
-  const reader = new FileReader();
-  reader.onload = () => {
-    try {
-      let data;
-      if (file.name.endsWith('.json')) {
-        data = JSON.parse(reader.result);
-      } else {
-        data = {
-          id: uuid(),
-          title: file.name.replace(/\.[^.]+$/, ''),
-          artist: '',
-          text: reader.result,
-          transpose: 0,
-          updated: Date.now(),
-        };
-      }
-      data.id = uuid();
-      data.updated = Date.now();
-      songs.push(data);
-      saveSongsToStorage();
-      loadSong(data.id);
-    } catch(e) {
-      alert('שגיאה בטעינת הקובץ: ' + e.message);
-    }
-  };
-  reader.readAsText(file, 'utf-8');
-}
-
-function updateAll() {
+function update() {
   const text = els.editor.value;
-  const semitones = parseInt(els.transpose.value, 10);
+  const semi = parseInt(els.transpose.value, 10);
   const useFlats = els.useFlats.checked;
-
-  els.transposeValue.textContent = (semitones >= 0 ? '+' : '') + semitones;
-
-  const origKey = detectKey(text);
-  if (origKey) {
-    const currentKey = transposeNote(origKey, semitones, useFlats);
-    els.currentKey.textContent = currentKey;
-    els.originalKey.textContent = semitones !== 0 ? `סולם מקורי: ${origKey}` : '';
+  els.transposeValue.textContent = (semi >= 0 ? '+' : '') + semi;
+  const parsed = parseChordPro(text);
+  // Key display
+  if (parsed.meta.key) {
+    const orig = parsed.meta.key.replace(/m$/, '');
+    const cur = transposeNote(orig, semi, useFlats);
+    els.currentKey.textContent = cur + (parsed.meta.key.endsWith('m') ? 'm' : '');
+    els.originalKey.textContent = semi !== 0 ? `מקור: ${parsed.meta.key}` : '';
   } else {
     els.currentKey.textContent = '—';
     els.originalKey.textContent = '';
   }
-
-  const parsed = parseText(text);
-  if (text.trim() === '') {
-    els.preview.innerHTML = '<div class="empty-hint">התצוגה המקדימה תופיע כאן כשתתחיל להקליד...</div>';
-  } else {
-    els.preview.innerHTML = render(parsed, semitones, useFlats);
-  }
-  // Preview always follows getEffectiveDir (auto-detect from content + the
-  // user's explicit dirMode toggle). The editor follows the EXPLICIT mode
-  // only — `auto` leaves the editor in its default LTR-plaintext layout so
-  // each line auto-aligns; `rtl` or `ltr` flip the whole textarea so it
-  // matches the preview's flow side.
-  const effDir = getEffectiveDir(text);
-  els.preview.setAttribute('dir', effDir);
-  if (dirMode === 'rtl' || dirMode === 'ltr') {
-    els.editor.setAttribute('dir', dirMode);
-  } else {
-    els.editor.removeAttribute('dir');
-  }
-
+  // Direction (RTL for any Hebrew content)
+  const dir = songHasHebrew(text) ? 'rtl' : 'ltr';
+  els.preview.setAttribute('dir', dir);
+  // Render
+  els.preview.innerHTML = renderChordPro(parsed, semi, useFlats);
   // Stats
-  const lineCount = text.split('\n').length;
-  els.editorStats.textContent = `${lineCount} שורות`;
+  els.editorStats.textContent = `${text.split('\n').length} שורות`;
+  // Sync header inputs from the source — skip whichever field is focused so
+  // we don't fight the user's typing.
+  if (document.activeElement !== els.metaTitle) els.metaTitle.value = parsed.meta.title || '';
+  if (document.activeElement !== els.metaArtist) els.metaArtist.value = parsed.meta.artist || '';
+  if (document.activeElement !== els.metaKey) els.metaKey.value = parsed.meta.key || '';
 }
 
-// ========== Event listeners ==========
-els.editor.addEventListener('input', updateAll);
-els.title.addEventListener('input', updateAll);
-els.transpose.addEventListener('input', updateAll);
-els.useFlats.addEventListener('change', () => { saveSettings(); updateAll(); });
-
-els.trUp.addEventListener('click', () => {
-  const v = parseInt(els.transpose.value, 10);
-  if (v < 11) { els.transpose.value = v + 1; updateAll(); }
-});
-els.trDown.addEventListener('click', () => {
-  const v = parseInt(els.transpose.value, 10);
-  if (v > -11) { els.transpose.value = v - 1; updateAll(); }
-});
-els.trReset.addEventListener('click', () => { els.transpose.value = 0; updateAll(); });
-
-els.btnNew.addEventListener('click', () => newSong(true));
-els.btnSave.addEventListener('click', saveSong);
-els.btnExport.addEventListener('click', exportCurrent);
-els.btnImport.addEventListener('click', () => els.fileInput.click());
-els.fileInput.addEventListener('change', (e) => {
-  const f = e.target.files[0];
-  if (f) importFile(f);
-  e.target.value = '';
-});
-// Build the short per-page header text shown in print. Format:
-// "Song · Artist · Key (orig)" — just enough to identify the song, no key
-// or artist text if not provided.
-function buildPrintHeader() {
-  const parts = [];
-  const title = els.title.value.trim();
-  const artist = els.artist.value.trim();
-  if (title) parts.push(title);
-  if (artist) parts.push(artist);
-  const origKey = detectKey(els.editor.value);
-  if (origKey) {
-    const semi = parseInt(els.transpose.value, 10);
-    const useFlats = els.useFlats.checked;
-    const cur = transposeNote(origKey, semi, useFlats);
-    parts.push(semi === 0 ? cur : `${cur} (מקור ${origKey})`);
+// Insert/update/remove a top-level directive in the source. Used by the
+// header inputs so editing the title field rewrites `{title: ...}` in the
+// editor, and clearing the field deletes the directive line entirely.
+function setDirective(name, value) {
+  let text = els.editor.value;
+  // Match the FIRST occurrence anywhere; ChordPro convention puts meta at top
+  const re = new RegExp(`^\\{\\s*${name}\\s*:[^}]*\\}\\s*\\r?\\n?`, 'mi');
+  const trimmedValue = value.trim();
+  if (re.test(text)) {
+    if (trimmedValue === '') {
+      text = text.replace(re, '');
+    } else {
+      text = text.replace(re, `{${name}: ${trimmedValue}}\n`);
+    }
+  } else if (trimmedValue !== '') {
+    text = `{${name}: ${trimmedValue}}\n` + text;
   }
-  return parts.join(' · ') || (title || 'שיר');
+  // Preserve cursor position roughly — store and restore caret
+  const caret = els.editor.selectionStart;
+  els.editor.value = text;
+  els.editor.selectionStart = els.editor.selectionEnd = Math.min(caret, text.length);
+  update();
 }
 
-// `beforeprint` fires whether the user opens the dialog via the button or
-// Ctrl+P. We swap document.title so the browser's built-in print header
-// (when "Headers and footers" is enabled) reads the song name instead of
-// "עורך אקורדים ושירים", and restore it afterwards.
-const APP_TITLE = document.title;
-window.addEventListener('beforeprint', () => {
-  const header = buildPrintHeader();
-  els.printPageHeader.textContent = header;
-  document.title = header;
-});
-window.addEventListener('afterprint', () => {
-  document.title = APP_TITLE;
-});
-
-els.btnPdf.addEventListener('click', () => window.print());
-
-// Typography sliders — saved to localStorage so the user keeps their
-// preferred reading size across sessions and for PDF output.
-function applyFontSize(value) {
-  els.preview.style.setProperty('--preview-font-size', value + 'px');
-  els.fontSizeValue.textContent = value;
-}
-function applyLineHeight(value) {
-  els.preview.style.setProperty('--preview-line-height', value);
-  els.lineHeightValue.textContent = parseFloat(value).toFixed(1);
-}
-els.fontSize.addEventListener('input', () => {
-  applyFontSize(els.fontSize.value);
-  localStorage.setItem('chordEditor.fontSize', els.fontSize.value);
-});
-els.lineHeight.addEventListener('input', () => {
-  applyLineHeight(els.lineHeight.value);
-  localStorage.setItem('chordEditor.lineHeight', els.lineHeight.value);
-});
-
-els.btnCols.addEventListener('click', () => {
-  const twoCols = els.preview.classList.toggle('two-cols');
-  els.btnCols.textContent = twoCols ? '▥ עמודה אחת' : '▥ שתי עמודות';
-  localStorage.setItem('chordEditor.twoCols', twoCols ? '1' : '0');
-});
-
-function updateDirButtonLabel() {
-  els.btnDir.textContent = DIR_LABELS[dirMode];
+// Insert text at cursor (used by palette buttons)
+function insertAtCursor(text, cursorOffsetFromEnd = 0) {
+  const t = els.editor;
+  t.focus();
+  const start = t.selectionStart;
+  const end = t.selectionEnd;
+  const v = t.value;
+  t.value = v.slice(0, start) + text + v.slice(end);
+  const newPos = start + text.length + cursorOffsetFromEnd;
+  t.selectionStart = t.selectionEnd = newPos;
+  update();
 }
 
-els.btnDir.addEventListener('click', () => {
-  const i = DIR_MODES.indexOf(dirMode);
-  dirMode = DIR_MODES[(i + 1) % DIR_MODES.length];
-  localStorage.setItem('chordEditor.dirMode', dirMode);
-  updateDirButtonLabel();
-  updateAll();
+// Palette buttons
+els.palette.querySelectorAll('button').forEach(btn => {
+  btn.addEventListener('mousedown', e => e.preventDefault());
+  btn.addEventListener('click', () => {
+    if (btn.dataset.snippet) {
+      const snippet = btn.dataset.snippet;
+      const offset = parseInt(btn.dataset.cursor || '0', 10);
+      insertAtCursor(snippet, offset);
+    } else if (btn.dataset.chord) {
+      insertAtCursor('[' + btn.dataset.chord + ']');
+    }
+  });
 });
-
-// Force the current line in the editor to a specific direction by prepending
-// an invisible Unicode mark. `unicode-bidi: plaintext` already auto-detects
-// per-paragraph, so the mark just overrides that for one line — useful when
-// an English chord line lands on the left and the user wants it on the right
-// above a Hebrew lyric.
-function setLineDirection(dir) {
-  const editor = els.editor;
-  const value = editor.value;
-  const pos = editor.selectionStart;
-  const lineStart = value.lastIndexOf('\n', pos - 1) + 1;
-  const nl = value.indexOf('\n', pos);
-  const lineEnd = nl === -1 ? value.length : nl;
-  const lineContent = value.slice(lineStart, lineEnd);
-  const stripped = lineContent.replace(/^[‎‏‪-‮⁦-⁩]+/, '');
-  const marker = dir === 'rtl' ? '‏' : dir === 'ltr' ? '‎' : '';
-  const newLine = marker + stripped;
-  editor.value = value.slice(0, lineStart) + newLine + value.slice(lineEnd);
-  const delta = newLine.length - lineContent.length;
-  const newPos = Math.max(lineStart, pos + delta);
-  editor.selectionStart = editor.selectionEnd = newPos;
-  editor.focus();
-  updateAll();
-}
-
-// Insert `[chord]` at the editor's caret position. Lets the user write Hebrew
-// lyrics in natural RTL flow first, click where they want a chord change, then
-// drop it in via palette button or Ctrl+Alt+letter — no bidi guessing.
-function insertChordAtCursor(chord) {
-  const editor = els.editor;
-  editor.focus();
-  const start = editor.selectionStart;
-  const end = editor.selectionEnd;
-  const v = editor.value;
-  const insertion = '[' + chord + ']';
-  editor.value = v.slice(0, start) + insertion + v.slice(end);
-  editor.selectionStart = editor.selectionEnd = start + insertion.length;
-  updateAll();
-}
-
-document.querySelectorAll('#chordPalette button[data-chord]').forEach(btn => {
-  // mousedown preventDefault keeps the textarea selection intact while clicking.
-  btn.addEventListener('mousedown', (e) => e.preventDefault());
-  btn.addEventListener('click', () => insertChordAtCursor(btn.dataset.chord));
-});
-
-const chordInputEl = document.getElementById('chordInput');
-chordInputEl.addEventListener('keydown', (e) => {
+// Custom chord input
+els.chordInput.addEventListener('keydown', e => {
   if (e.key === 'Enter') {
     e.preventDefault();
-    const c = chordInputEl.value.trim();
+    const c = els.chordInput.value.trim();
     if (c) {
-      insertChordAtCursor(c);
-      chordInputEl.value = '';
+      insertAtCursor('[' + c + ']');
+      els.chordInput.value = '';
       els.editor.focus();
     }
   }
 });
 
-// Keyboard: Ctrl+S save, Ctrl+↑/↓ transpose, Ctrl+Alt+[A-G] insert chord,
-// Ctrl+Shift+R/L set current line direction. All key tests use e.code so they
-// work on any keyboard layout (Hebrew, English).
-document.addEventListener('keydown', (e) => {
+// Header meta inputs — typing in them rewrites the corresponding directive
+// in the source. `input` event is debounced naturally because setDirective
+// just splices the source string.
+els.metaTitle.addEventListener('input', () => setDirective('title', els.metaTitle.value));
+els.metaArtist.addEventListener('input', () => setDirective('artist', els.metaArtist.value));
+els.metaKey.addEventListener('input', () => setDirective('key', els.metaKey.value));
+
+// Two-column toggle (affects screen + print layout)
+els.btnCols.addEventListener('click', () => {
+  const isTwo = els.preview.classList.toggle('two-cols');
+  els.btnCols.textContent = isTwo ? '▥ עמודה אחת' : '▥ שתי עמודות';
+  localStorage.setItem('chordProEditor.twoCols', isTwo ? '1' : '0');
+});
+
+// Transpose
+els.editor.addEventListener('input', update);
+els.transpose.addEventListener('input', update);
+els.useFlats.addEventListener('change', () => { localStorage.setItem('chordProEditor.useFlats', els.useFlats.checked ? '1' : '0'); update(); });
+els.trUp.addEventListener('click', () => { els.transpose.value = Math.min(11, parseInt(els.transpose.value,10) + 1); update(); });
+els.trDown.addEventListener('click', () => { els.transpose.value = Math.max(-11, parseInt(els.transpose.value,10) - 1); update(); });
+els.trReset.addEventListener('click', () => { els.transpose.value = 0; update(); });
+
+// Typography
+function applyFontSize(v) {
+  els.preview.style.setProperty('--preview-font-size', v + 'px');
+  els.fontSizeValue.textContent = v;
+}
+function applyLineHeight(v) {
+  els.preview.style.setProperty('--preview-line-height', v);
+  els.lineHeightValue.textContent = parseFloat(v).toFixed(1);
+}
+els.fontSize.addEventListener('input', () => { applyFontSize(els.fontSize.value); localStorage.setItem('chordProEditor.fontSize', els.fontSize.value); });
+els.lineHeight.addEventListener('input', () => { applyLineHeight(els.lineHeight.value); localStorage.setItem('chordProEditor.lineHeight', els.lineHeight.value); });
+
+// New / import / export
+els.btnNew.addEventListener('click', () => {
+  if (els.editor.value.trim() && !confirm('להתחיל שיר חדש? התוכן הקיים יימחק.')) return;
+  els.editor.value = '';
+  els.transpose.value = 0;
+  update();
+});
+
+els.btnImport.addEventListener('click', () => els.fileInput.click());
+els.fileInput.addEventListener('change', e => {
+  const f = e.target.files[0];
+  if (!f) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    els.editor.value = reader.result;
+    update();
+  };
+  reader.readAsText(f, 'utf-8');
+  e.target.value = '';
+});
+
+els.btnExport.addEventListener('click', () => {
+  const text = els.editor.value;
+  const parsed = parseChordPro(text);
+  const semi = parseInt(els.transpose.value, 10);
+  const useFlats = els.useFlats.checked;
+  // If the user has transposed, write a transposed copy. Update {key:} too.
+  let out = text;
+  if (semi !== 0) {
+    // Transpose all [chord] markers in the source text
+    out = text.replace(/\[([^\]]+)\]/g, (m, chord) => {
+      const trimmed = chord.trim();
+      if (isChordToken(trimmed)) return '[' + transposeChord(trimmed, semi, useFlats) + ']';
+      return m;
+    });
+    // Transpose {key: X} value too
+    out = out.replace(/\{key:\s*([^}]+)\}/i, (m, key) => {
+      const k = key.trim();
+      const root = k.replace(/m$/, '');
+      return '{key: ' + transposeNote(root, semi, useFlats) + (k.endsWith('m') ? 'm' : '') + '}';
+    });
+  }
+  const blob = new Blob([out], { type: 'text/plain;charset=utf-8' });
+  const a = document.createElement('a');
+  const name = (parsed.meta.title || 'song').replace(/[\\/:*?"<>|]/g, '_');
+  a.href = URL.createObjectURL(blob);
+  a.download = name + '.cho';
+  a.click();
+  URL.revokeObjectURL(a.href);
+});
+
+// PDF — same minimal running header as the main editor
+const APP_TITLE = document.title;
+function buildPrintHeader() {
+  const text = els.editor.value;
+  const parsed = parseChordPro(text);
+  const parts = [];
+  if (parsed.meta.title) parts.push(parsed.meta.title);
+  if (parsed.meta.artist) parts.push(parsed.meta.artist);
+  if (parsed.meta.key) {
+    const semi = parseInt(els.transpose.value, 10);
+    const useFlats = els.useFlats.checked;
+    const orig = parsed.meta.key.replace(/m$/, '');
+    const cur = transposeNote(orig, semi, useFlats) + (parsed.meta.key.endsWith('m') ? 'm' : '');
+    parts.push(semi === 0 ? cur : `${cur} (מקור ${parsed.meta.key})`);
+  }
+  return parts.join(' · ') || 'שיר';
+}
+window.addEventListener('beforeprint', () => {
+  const header = buildPrintHeader();
+  els.printPageHeader.textContent = header;
+  document.title = header;
+});
+window.addEventListener('afterprint', () => { document.title = APP_TITLE; });
+els.btnPdf.addEventListener('click', () => window.print());
+
+// Force the direction of every line covered by the current selection (or the
+// caret's line if nothing is selected). Adds an invisible Unicode mark at
+// each line's start — RLM (U+200F) for RTL, LRM (U+200E) for LTR. The
+// textarea's `unicode-bidi: plaintext` picks up the mark as the line's first
+// strong character and re-flows that line accordingly. Works on any number
+// of lines and is language-agnostic — English chord lines and Hebrew lyric
+// lines both get the same treatment.
+function setSelectionDirection(dir) {
+  const editor = els.editor;
+  const start = editor.selectionStart;
+  const end = editor.selectionEnd;
+  const v = editor.value;
+  const selStart = v.lastIndexOf('\n', start - 1) + 1;
+  let selEnd;
+  if (end > 0 && v[end - 1] === '\n') {
+    selEnd = end - 1;
+  } else {
+    const nl = v.indexOf('\n', end);
+    selEnd = nl === -1 ? v.length : nl;
+  }
+  const block = v.slice(selStart, selEnd);
+  const marker = dir === 'rtl' ? '\u200F' : dir === 'ltr' ? '\u200E' : '';
+  const stripRe = /^[\u200E\u200F\u202A-\u202E\u2066-\u2069]+/;
+  const newBlock = block
+    .split('\n')
+    .map(line => marker + line.replace(stripRe, ''))
+    .join('\n');
+  editor.value = v.slice(0, selStart) + newBlock + v.slice(selEnd);
+  editor.selectionStart = selStart;
+  editor.selectionEnd = selStart + newBlock.length;
+  editor.focus();
+  update();
+}
+
+// Keyboard shortcuts
+document.addEventListener('keydown', e => {
+  // Ctrl+Alt+[A-G] → insert chord at cursor
   if (e.ctrlKey && e.altKey && !e.shiftKey && !e.metaKey) {
     const m = e.code.match(/^Key([A-G])$/);
     if (m) {
       e.preventDefault();
-      insertChordAtCursor(m[1]);
+      insertAtCursor('[' + m[1] + ']');
       return;
     }
   }
+  // Ctrl+Shift+R → force selected lines RTL
+  // Ctrl+Shift+L → force selected lines LTR
+  // Use e.code so it's keyboard-layout independent (Hebrew + English).
   if (e.ctrlKey && e.shiftKey && !e.altKey && !e.metaKey) {
     if (e.code === 'KeyR') {
       e.preventDefault();
-      setLineDirection('rtl');
+      setSelectionDirection('rtl');
       return;
     }
     if (e.code === 'KeyL') {
       e.preventDefault();
-      setLineDirection('ltr');
+      setSelectionDirection('ltr');
       return;
     }
   }
-  if ((e.ctrlKey || e.metaKey) && !e.altKey && e.key.toLowerCase() === 's') {
-    e.preventDefault();
-    saveSong();
-  } else if ((e.ctrlKey || e.metaKey) && !e.altKey && e.key === 'ArrowUp') {
-    e.preventDefault();
-    els.trUp.click();
-  } else if ((e.ctrlKey || e.metaKey) && !e.altKey && e.key === 'ArrowDown') {
-    e.preventDefault();
-    els.trDown.click();
-  }
 });
 
-// ========== Init ==========
+// Initial restore
 (function init() {
-  const settings = loadSettings();
-  els.useFlats.checked = !!settings.useFlats;
-
-  if (localStorage.getItem('chordEditor.twoCols') === '1') {
+  const useFlats = localStorage.getItem('chordProEditor.useFlats') === '1';
+  els.useFlats.checked = useFlats;
+  const fs = localStorage.getItem('chordProEditor.fontSize');
+  if (fs) { els.fontSize.value = fs; applyFontSize(fs); } else applyFontSize(els.fontSize.value);
+  const lh = localStorage.getItem('chordProEditor.lineHeight');
+  if (lh) { els.lineHeight.value = lh; applyLineHeight(lh); } else applyLineHeight(els.lineHeight.value);
+  if (localStorage.getItem('chordProEditor.twoCols') === '1') {
     els.preview.classList.add('two-cols');
     els.btnCols.textContent = '▥ עמודה אחת';
   }
 
-  // Restore saved typography preferences (font size + line spacing)
-  const savedFontSize = localStorage.getItem('chordEditor.fontSize');
-  if (savedFontSize) {
-    els.fontSize.value = savedFontSize;
-    applyFontSize(savedFontSize);
-  } else {
-    applyFontSize(els.fontSize.value);
-  }
-  const savedLineHeight = localStorage.getItem('chordEditor.lineHeight');
-  if (savedLineHeight) {
-    els.lineHeight.value = savedLineHeight;
-    applyLineHeight(savedLineHeight);
-  } else {
-    applyLineHeight(els.lineHeight.value);
-  }
+  // Seed with sample content if editor is empty
+  if (!els.editor.value.trim()) {
+    els.editor.value = `{title: ערב של שושנים}
+{artist: יוסף הדר}
+{key: Am}
 
-  updateDirButtonLabel();
-
-  // Sample song if first time
-  if (songs.length === 0) {
-    const sample = {
-      id: uuid(),
-      title: 'דוגמה - ערב של שושנים',
-      artist: 'יוסף הדר',
-      text: `[פתיחה]
-Am  Dm  E7  Am
-
-[בית]
+{start_of_verse: בית 1}
 [Am]ערב של [Dm]שושנים
 [E7]נצא נא אל ה[Am]בוסתן
 [Am]מור בשמים ול[Dm]בונה
 ל[E7]רגלך מפ[Am]תן
+{end_of_verse}
 
-[פזמון]
+{start_of_chorus}
 [Dm]לילה יורד [Am]לאט
 ו[E7]רוח שושן נו[Am]שבה
 [Dm]הבה אלחש לך [Am]שיר בלאט
 זמר של [E7]אהבה [Am]
+{end_of_chorus}
 
-[בית]
+{start_of_verse: בית 2}
 [Am]שחר הומה [Dm]יונה
 ראשך מלא ט[E7]ל[Am]לים
 [Am]פיך אל הבוקר [Dm]שושנה
-א[E7]קטפנו [Am]לי`,
-      transpose: 0,
-      updated: Date.now(),
-    };
-    songs.push(sample);
-    saveSongsToStorage();
-    loadSong(sample.id);
-  } else {
-    // Load most recently updated
-    const sorted = [...songs].sort((a,b) => (b.updated||0) - (a.updated||0));
-    loadSong(sorted[0].id);
+א[E7]קטפנו [Am]לי
+{end_of_verse}`;
   }
-  renderSongList();
-  updateAll();
+  update();
 })();
 </script>
 
